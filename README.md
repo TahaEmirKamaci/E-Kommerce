@@ -1,0 +1,105 @@
+# E‑Kommerce (Spring Boot + React)
+
+Tam fonksiyonel bir e‑ticaret mono-reposu. Backend Spring Boot 3 + MySQL, Frontend React 18 + PrimeReact.
+
+- Public ürün listesi (satıcı bilgisi ile)
+- JWT kimlik doğrulama (Müşteri / Satıcı / Admin rolleri)
+- Sepet ve ödeme (Nakit/Kart alanı)
+- Sipariş takibi (müşteri), durum ve kargo yönetimi (satıcı)
+- Admin paneli: kullanıcı/ürün yönetimi, gerçek zamanlı istatistikler
+
+## Teknolojiler
+- Backend: Java 17, Spring Boot 3, Spring Security (JWT), Spring Data JPA, MySQL
+- Frontend: React 18, PrimeReact, Axios
+
+## Hızlı Başlangıç (Windows / PowerShell)
+Önkoşullar: JDK 17+, Node 18+, MySQL 8+ kurulu ve çalışıyor.
+
+Varsayılan portlar: Backend 8080, Frontend 3000
+
+### 1) Backend’i çalıştır
+Konum: `e-kommerce Backend`
+
+- Veritabanı bağlantısı varsayılan ayarlar ile hazırdır:
+  - DB: `jdbc:mysql://localhost:3306/ecommerce_db` (otomatik oluşturulur)
+  - Kullanıcı: `root`
+  - Şifre: `sizin sql şifreniz`
+  - Port: `8080`
+- Gerekirse `src/main/resources/application.properties` dosyasını güncelleyin ya da ortam değişkenleri ile geçersiz kılın (aşağıda).
+
+PowerShell:
+
+```
+# Proje kökünden backend klasörüne geçin
+cd "e-kommerce Backend"
+.\mvnw.cmd clean spring-boot:run
+```
+
+Başarılı çalıştığında API: http://localhost:8080/api
+
+### 2) Frontend’i çalıştır
+Konum: `e-kommerce Frontend/primereact-app`
+
+- API adresi `.env` ile ayarlanabilir (örn. örnek dosyayı kopyalayın):
+  - `.env.example` → `.env` ve gerekirse düzenleyin.
+
+PowerShell:
+
+```
+# Proje kökünden frontend klasörüne geçin
+cd "e-kommerce Frontend/primereact-app"
+copy .env.example .env
+npm install
+npm start
+```
+
+Uygulama: http://localhost:3000
+
+## Yapılandırma
+
+### Backend ortam değişkenleri (opsiyonel)
+PowerShell oturumu için örnek:
+
+```
+$env:SPRING_DATASOURCE_URL = "jdbc:mysql://localhost:3306/ecommerce_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false"
+$env:SPRING_DATASOURCE_USERNAME = "root"
+$env:SPRING_DATASOURCE_PASSWORD = "134679"
+$env:SERVER_PORT = "8080"
+$env:JWT_SECRET = "ChangeMeToAStrongSecret"
+.\mvnw.cmd spring-boot:run
+```
+
+Notlar:
+- `schema.sql` ve `database_fixes.sql` başlangıçta otomatik çalışır (eksik sütun/enum düzeltmeleri dahil). `spring.sql.init.continue-on-error=true` olduğu için tekrar çalıştırmalarda hata vermez.
+- CORS: `http://localhost:3000` izinli.
+
+### Frontend ortam değişkenleri
+`e-kommerce Frontend/primereact-app/.env`
+
+```
+REACT_APP_API_URL=http://localhost:8080/api
+```
+
+## Giriş ve Roller
+- Kayıt → Müşteri rolü ile giriş yapılır.
+- Satıcı ve Admin yetkileri için mevcut kullanıcı rolünü Admin panelinden ya da veritabanından güncelleyin.
+  - Örn. bir kullanıcıyı admin yapmak için DB’de ilgili rol alanını ADMIN yapın.
+
+## Proje Yapısı
+- `e-kommerce Backend/` Spring Boot kaynakları
+- `e-kommerce Frontend/primereact-app/` React istemcisi
+- `database_complete_fix.sql` ve `e-kommerce Backend/src/main/resources/database_fixes.sql` DB uyumluluk düzeltmeleri
+
+## Sık Karşılaşılan Sorunlar ve Çözümler
+- 401 Unauthorized: JWT token yok/geçersiz. Giriş yapın; frontend otomatik olarak token’ı gönderir.
+- 403 Forbidden (satıcı/admin uçları): Rolünüz uygun değil. Kullanıcının rolünü güncelleyin.
+- Unknown column / Data truncated (ör. SHIPPED): Backend yeniden başlatıldığında `schema.sql` + `database_fixes.sql` çalışır. Gerekirse `database_complete_fix.sql` betiğini MySQL’de manuel çalıştırın.
+- Port çakışması: `SERVER_PORT` veya frontend portunu değiştirin (`$env:PORT=3001; npm start`).
+- Giriş başarısız (Bad credentials): Kullanıcı adı/şifreyi doğrulayın. DB bağlantı bilgilerini kontrol edin.
+
+## Üretim İçin
+- Backend’te `JWT_SECRET` ve DB bilgilerini güvenli ortam değişkenleri ile sağlayın.
+- Frontend için `npm run build` ve statik dosyaları üretin. İstendiğinde Spring Boot’un `resources/static` altına deploy edilebilir ya da ayrı sunucuya alınabilir.
+
+## Lisans
+Bu depo için lisans belirtilmemiştir. Kurum/iç kullanım senaryosu varsayılmıştır.

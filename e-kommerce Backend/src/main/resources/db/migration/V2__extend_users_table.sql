@@ -1,0 +1,15 @@
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS first_name varchar(100) NULL,
+  ADD COLUMN IF NOT EXISTS last_name varchar(100) NULL,
+  ADD COLUMN IF NOT EXISTS phone varchar(50) NULL,
+  ADD COLUMN IF NOT EXISTS address varchar(255) NULL,
+  ADD COLUMN IF NOT EXISTS city varchar(100) NULL,
+  ADD COLUMN IF NOT EXISTS country varchar(100) NULL,
+  ADD COLUMN IF NOT EXISTS shop_name varchar(255) NULL,
+  ADD COLUMN IF NOT EXISTS shop_address varchar(255) NULL,
+  ADD COLUMN IF NOT EXISTS shop_description varchar(1000) NULL,
+  ADD COLUMN IF NOT EXISTS email_verified bit(1) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS is_active bit(1) NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS created_at datetime NULL,
+  ADD COLUMN IF NOT EXISTS updated_at datetime NULL,
+  ADD COLUMN IF NOT EXISTS role varchar(20) NOT NULL DEFAULT 'CUSTOMER';
