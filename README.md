@@ -63,7 +63,7 @@ PowerShell oturumu için örnek:
 ```
 $env:SPRING_DATASOURCE_URL = "jdbc:mysql://localhost:3306/ecommerce_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false"
 $env:SPRING_DATASOURCE_USERNAME = "root"
-$env:SPRING_DATASOURCE_PASSWORD = "134679"
+$env:SPRING_DATASOURCE_PASSWORD = "sql-şifreniz"
 $env:SERVER_PORT = "8080"
 $env:JWT_SECRET = "ChangeMeToAStrongSecret"
 .\mvnw.cmd spring-boot:run
@@ -103,3 +103,210 @@ REACT_APP_API_URL=http://localhost:8080/api
 
 ## Lisans
 Bu depo için lisans belirtilmemiştir. Kurum/iç kullanım senaryosu varsayılmıştır.
+
+# E‑Kommerce: Teknik Dokümantasyon
+
+## Amaç
+Tam fonksiyonel, çok kullanıcılı bir e-ticaret platformu. Kullanıcılar ürünleri inceleyip satın alabilir, satıcılar ürün ve sipariş yönetimi yapabilir, admin paneli ile sistem yönetimi sağlanır.
+
+## Klasör Yapısı
+```
+├── README.md
+├── database_complete_fix.sql
+├── package.json
+├── e-kommerce Backend/
+│   ├── sql/
+│   │   └── fix_fk_product_seller.sql
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/
+│   │   │   │       └── ekommerce/
+│   │   │   │           ├── config/
+│   │   │   │                   ├── CorsConfig.java
+│   │   │   │                   ├── JwtAuthenticatşonFilter.java
+│   │   │   │                   ├── JwtConfig.java
+│   │   │   │                   ├── PasswordBackfillRunner.java
+│   │   │   │                   └── SecurityConfig.java
+│   │   │   │           ├── controller/
+│   │   │   │                   ├── AdminController.java
+│   │   │   │                   ├── AuthController.java
+│   │   │   │                   ├── CartController.java
+│   │   │   │                   ├── CategoryController.java
+│   │   │   │                   ├── OrderController.java
+│   │   │   │                   ├── ProductController.java
+│   │   │   │                   └── UserController.java
+│   │   │   │           ├── dto/
+│   │   │   │                   ├── CartDto.java
+│   │   │   │                   ├── LoginDto.java
+│   │   │   │                   ├── OrderDto.java
+│   │   │   │                   ├── ProductDto.java
+│   │   │   │                   └── RegisterDto.java
+│   │   │   │           ├── entity/
+│   │   │   │                   ├── Cart.java
+│   │   │   │                   ├── CartItem.java
+│   │   │   │                   ├── Category.java
+│   │   │   │                   ├── OrderItem.java
+│   │   │   │                   ├── Orders.java
+│   │   │   │                   ├── OrderStatus.java
+│   │   │   │                   ├── PaymentMethod.java
+│   │   │   │                   ├── Product.java
+│   │   │   │                   ├── Profile.java
+│   │   │   │                   ├── ShippingStatus.java
+│   │   │   │                   ├── User.java
+│   │   │   │                   ├── UserProfile.java
+│   │   │   │                   └── UserRole.java
+│   │   │   │           ├── repository/
+│   │   │   │                   ├── CartItemRepository.java
+│   │   │   │                   ├── CartRepository.java
+│   │   │   │                   ├── CategoryRepository.java
+│   │   │   │                   ├── OrderItemRepository.java
+│   │   │   │                   ├── OrderRepository.java
+│   │   │   │                   ├── ProductRepository.java
+│   │   │   │                   └── UserRepository.java
+│   │   │   │           ├── service/
+│   │   │   │                   ├── AdminService.java
+│   │   │   │                   ├── AuthService.java
+│   │   │   │                   ├── CartService.java
+│   │   │   │                   ├── CategoryService.java
+│   │   │   │                   ├── CustomUserDetailsService.java
+│   │   │   │                   ├── JwtService.java
+│   │   │   │                   ├── JwtTokenPorvider.java
+│   │   │   │                   ├── OrderService.java
+│   │   │   │                   ├── ProductService.java
+│   │   │   │                   └── UserService.java
+│   │   │   │           ├── util/
+
+│   │   │   │                   ├── JwtUtil.java
+│   │   │   │                   └── ResponseUtil.java
+│   │   │   │           └── EKommerceApplication.java
+│   │   │   ├── resources/
+│   │   │   │   ├── application.properties
+│   │   │   │   ├── data.sql
+│   │   │   │   ├── database_fixes.sql
+│   │   │   │   ├── schema.sql
+│   │   │   │   ├── db/
+│   │   │   │   ├── static/
+├── e-kommerce Frontend/
+│   └── primereact-app/
+│       ├── src/
+│       │   ├── App.css
+│       │   ├── App.js
+│       │   ├── App.test.js
+│       │   ├── components/
+│       │   │   ├── admin/
+│       │   │   │   ├── Productmanagement.js
+│       │   │   │   └── UserManagement.js
+│       │   │   ├── auth/
+│       │   │   │   ├── Login.js
+│       │   │   │   └── Register.js
+│       │   │   ├── cart/
+│       │   │   │   └── Cart.js
+│       │   │   ├── common/
+│       │   │   │   ├── Footer.js
+│       │   │   │   ├── Header.js
+│       │   │   │   ├── LoadingSpinner.js
+│       │   │   │   └── Navbar.js
+│       │   │   ├── product/
+│       │   │   │   ├── ProductCard.js
+│       │   │   │   ├── ProductFilter.js
+│       │   │   │   ├── ProductForm.js
+│       │   │   │   └── ProductList.js
+│       │   │   ├── profile/
+│       │   │   │   └── UserProfile.js
+│       │   ├── context/
+│       │   │   ├── AuthContext.js
+│       │   │   └── CartContext.js
+│       │   ├── index.css
+│       │   ├── index.js
+│       │   ├── logo.svg
+│       │   ├── pages/
+│       │   │   ├── AddProductPage.js
+│       │   │   ├── AdminPage.js
+│       │   │   ├── CartPage.js
+│       │   │   ├── HomePage.js
+│       │   │   ├── PoductsPage.js
+│       │   │   ├── ProfilePage.js
+│       │   │   └── SellerPage.js
+│       │   ├── services/
+│       │   │   ├── adminServices.js
+│       │   │   ├── api.js
+│       │   │   ├── authService.js
+│       │   │   ├── cartService.js
+│       │   │   ├── orderServices.js
+│       │   │   ├── productService.js
+│       │   │   └── userServices.js
+│       │   ├── styles/
+│       │   │   └── global.css
+│       │   ├── utils/
+│       │   │   └── helpers.js
+```
+
+## Kullanılan Teknolojiler
+- **Backend:** Java 17, Spring Boot 3, Spring Security (JWT), Spring Data JPA, MySQL
+- **Frontend:** React 18, PrimeReact, Axios
+- **Veritabanı:** MySQL (schema.sql ile enum, foreign key, timestamp)
+- **Resim Yönetimi:**
+  - Backend: `/static/images/products/` altında sunucuya yüklenen dosyalar
+  - Frontend: `public/` klasöründe statik dosyalar
+  - image_url alanı ile ürün görsel yolu DB'de tutulur
+
+## Teknik Detaylar
+- **Güvenlik:**
+  - JWT tabanlı kimlik doğrulama
+  - Rol bazlı erişim: ADMIN, SELLER, CUSTOMER
+  - CORS: Frontend için localhost:3000 izinli
+- **API:**
+  - RESTful endpointler (Spring Boot Controller)
+  - JSON veri alışverişi
+  - Hata yönetimi: HTTP status + JSON error body
+- **Veritabanı:**
+  - Tablolar arası ilişkiler (foreign key)
+  - Enum tipler (ör. status, payment_method)
+  - Otomatik timestamp (created_at, updated_at)
+  - Patch scriptleri ile schema güncellemeleri
+- **Resim Gösterimi:**
+  - image_url alanı `/download.jpg` (frontend/public) veya `/images/products/box.jpg` (backend/static) olmalı
+  - Frontend'de `<img src={imageUrl} ... />` ile gösterilir
+  - Tüm resimler sabit boyutta (örn. 200x200px, object-fit: cover)
+- **Admin Paneli:**
+  - Kullanıcı ve ürün yönetimi
+  - Rol güncelleme, istatistikler
+- **Satıcı Paneli:**
+  - Ürün ekleme/güncelleme
+  - Sipariş ve kargo yönetimi
+- **Sepet ve Sipariş:**
+  - Sepet yönetimi, tek satıcı kuralı
+  - Sipariş oluşturma, ödeme (nakit/kart), kargo takibi
+
+## Örnek DB Tablo: product
+```sql
+CREATE TABLE IF NOT EXISTS product (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    image_url VARCHAR(500),
+    stock_quantity INT NOT NULL DEFAULT 0,
+    seller_id INT NOT NULL,
+    category_id INT NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE', 'OUT_OF_STOCK') DEFAULT 'ACTIVE',
+    featured BOOLEAN DEFAULT FALSE,
+    views BIGINT DEFAULT 0,
+    sales BIGINT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES category(id)
+);
+```
+
+## Kurulum
+- Backend: `mvnw.cmd spring-boot:run` ile başlatılır.
+- Frontend: `npm install && npm start` ile başlatılır.
+- Veritabanı: MySQL'de `schema.sql` ve `database_fixes.sql` otomatik çalışır.
+
+## Notlar
+- image_url alanı `/download.jpg` (frontend/public) veya `/images/products/box.jpg` (backend/static) olmalı.
+- Tüm teknik detaylar ve örnekler README'de açıklanmıştır.
+
