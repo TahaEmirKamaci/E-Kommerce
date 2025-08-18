@@ -123,7 +123,6 @@ Tam fonksiyonel, çok kullanıcılı bir e-ticaret platformu. Kullanıcılar ür
 │   │   │   │   └── com/
 │   │   │   │       └── ekommerce/
 │   │   │   │           ├── config/
-│   │   │   │                   ├── CorsConfig.java
 │   │   │   │                   ├── JwtAuthenticatşonFilter.java
 │   │   │   │                   ├── JwtConfig.java
 │   │   │   │                   ├── PasswordBackfillRunner.java
