@@ -121,16 +121,16 @@ const AdminPage = () => {
             <p>Sistem yönetimi ve raporlar</p>
           </div>
           <div className="flex gap-2">
-            <Calendar
+            {/* <Calendar
               value={selectedDateRange}
               onChange={(e) => setSelectedDateRange(e.value)}
               selectionMode="range"
               placeholder="Tarih aralığı seçin"
-            />
-            <Button
+            /> */}
+            {/* <Button
               label="Rapor İndir"
               icon="pi pi-download"
-            />
+            /> */}
           </div>
         </div>
 

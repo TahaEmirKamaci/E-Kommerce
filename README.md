@@ -123,6 +123,7 @@ Tam fonksiyonel, çok kullanıcılı bir e-ticaret platformu. Kullanıcılar ür
 │   │   │   │   └── com/
 │   │   │   │       └── ekommerce/
 │   │   │   │           ├── config/
+│   │   │   │                   ├── CorsConfig.java
 │   │   │   │                   ├── JwtAuthenticatşonFilter.java
 │   │   │   │                   ├── JwtConfig.java
 │   │   │   │                   ├── PasswordBackfillRunner.java
@@ -299,6 +300,26 @@ CREATE TABLE IF NOT EXISTS product (
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
 ```
+## Tema ve Kullanıcı Deneyimi (Son Geliştirmeler)
+
+- **Koyu/Açık Tema Desteği:**  
+  Uygulamanın tamamında (header, footer, container, kartlar, butonlar, formlar) tema değişimine duyarlı renk paleti uygulanmıştır. Kullanıcı Navbar üzerinden tema değiştirerek arka plan, metin, buton ve ikon renklerini anında değiştirebilir. Renkler modern ve yüksek kontrastlı olacak şekilde optimize edilmiştir.
+
+- **Form Validasyonu ve Bildirimler:**  
+  Tüm formlarda eksik veya hatalı alanlar yalnızca kırmızı kenarlık (`p-invalid`) ile vurgulanır, ekstra hata mesajı gösterilmez. Tüm hata ve uyarılar PrimeReact Toast ile kullanıcıya bildirilir.  
+  Formlar kapandığında tüm alanlar ve hatalar otomatik olarak sıfırlanır.
+
+- **Rol ve Seçim Alanları:**  
+  Müşteri/Satıcı gibi seçim alanlarında, seçili olan seçenek ve yanındaki ikonlar aktif temaya ve seçime göre yüksek kontrastlı ve görünür şekilde renklendirilir. Açık modda metin ve ikonlar daha koyu ve kalın, koyu modda ise açık ve net görünür.
+
+- **Admin Kullanıcılar:**  
+  Admin olarak giriş yapan kullanıcılar için sepet fonksiyonu tamamen devre dışı bırakılmıştır.
+
+- **Responsive ve Modern Tasarım:**  
+  Tüm sayfalar ve bileşenler mobil ve masaüstü uyumlu, modern ve sade bir görünüme sahiptir.  
+  Tema değişimi, tüm ana yapılar ve bileşenlerde (header, footer, container, kart, buton, input, ikon) otomatik olarak uygulanır.
+
+---
 
 ## Kurulum
 - Backend: `mvnw.cmd spring-boot:run` ile başlatılır.
