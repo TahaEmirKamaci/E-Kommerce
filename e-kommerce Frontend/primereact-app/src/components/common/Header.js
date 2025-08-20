@@ -9,7 +9,7 @@ import { useCart } from '../../context/CartContext';
 
 export default function Header() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { cart } = useCart();
   
   const cartCount = Array.isArray(cart) ? cart.length : 0;
@@ -55,14 +55,17 @@ export default function Header() {
 
   const end = (
     <div className="flex align-items-center gap-2">
-      <Button
-        icon="pi pi-shopping-cart"
-        label={`Sepet ${cartCount > 0 ? `(${cartCount})` : ''}`}
-        className="p-button-outlined"
-        onClick={() => navigate('/cart')}
-      />
-      {cartCount > 0 && <Badge value={cartCount} severity="info" />}
-      
+      {!isAdmin && (
+        <>
+          <Button
+            icon="pi pi-shopping-cart"
+            label={`Sepet ${cartCount > 0 ? `(${cartCount})` : ''}`}
+            className="p-button-outlined"
+            onClick={() => navigate('/cart')}
+          />
+          {cartCount > 0 && <Badge value={cartCount} severity="info" />}
+        </>
+      )}
       {user ? (
         <>
           <Button

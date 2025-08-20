@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Toast } from 'primereact/toast';
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -24,6 +25,8 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
     categoryId: null,
     imageFile: null, // sadece dosya
   });
+  const [touched, setTouched] = useState({});
+  const toast = useRef(null);
 
   // Ürün düzenleme ise formu doldur
   useEffect(() => {
@@ -55,7 +58,22 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
 
   const submit = async (e) => {
     e.preventDefault();
+    setTouched({
+      name: true,
+      price: true,
+      imageFile: true
+    });
     setError('');
+    // Validasyon
+    if (!form.name || !form.price || !form.imageFile) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Hata',
+        detail: 'Zorunlu alanları doldurunuz',
+        life: 3000
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
@@ -67,12 +85,16 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
         categoryId: form.categoryId,
         imageFile: form.imageFile, // zorunlu dosya
       };
-
       const created = onSave ? await onSave(payload) : await createProduct(payload);
       if (!created) throw new Error('Create failed');
-
       navigate('/seller', { replace: true });
     } catch (err) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Kayıt Hatası',
+        detail: err?.response?.data?.message || 'Ürün eklenemedi.',
+        life: 3000
+      });
       setError(err?.response?.data?.message || 'Ürün eklenemedi.');
     } finally {
       setSubmitting(false);
@@ -81,9 +103,9 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
 
   return (
     <Card title={product ? 'Ürün Düzenle' : 'Yeni Ürün Ekle'}>
+      <Toast ref={toast} />
       <form onSubmit={submit} className="p-fluid">
         {error && <div className="p-error" style={{ marginBottom: 12 }}>{error}</div>}
-
         <div className="grid">
           <div className="col-12 md:col-6">
             <label htmlFor="name">Ürün Adı *</label>
@@ -92,11 +114,11 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               value={form.name}
               onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
               required
-              className="w-full"
+              className={`w-full${touched.name && !form.name ? ' p-invalid' : ''}`}
               placeholder="Ürün adı"
+              onBlur={() => setTouched(t => ({ ...t, name: true }))}
             />
           </div>
-
           <div className="col-12 md:col-6">
             <label htmlFor="price">Fiyat (₺) *</label>
             <InputNumber
@@ -106,11 +128,11 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               min={0}
               minFractionDigits={0}
               maxFractionDigits={2}
-              className="w-full"
+              className={`w-full${touched.price && !form.price ? ' p-invalid' : ''}`}
               required
+              onBlur={() => setTouched(t => ({ ...t, price: true }))}
             />
           </div>
-
           <div className="col-12">
             <label htmlFor="description">Açıklama</label>
             <InputTextarea
@@ -122,7 +144,6 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               placeholder="Ürün açıklaması"
             />
           </div>
-
           <div className="col-12 md:col-6">
             <label htmlFor="stockQuantity">Stok</label>
             <InputNumber
@@ -133,7 +154,6 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               className="w-full"
             />
           </div>
-
           <div className="col-12 md:col-6">
             <label htmlFor="categoryId">Kategori</label>
             <Dropdown
@@ -146,7 +166,6 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               disabled={loadingCats}
             />
           </div>
-
           <div className="col-12">
             <label htmlFor="imageFile">Görsel Dosya *</label>
             <input
@@ -155,10 +174,10 @@ export default function ProductForm({ product, onSave, onCancel, loading }) {
               accept="image/*"
               required
               onChange={(e) => setForm((s) => ({ ...s, imageFile: e.target.files?.[0] || null }))}
-              className="w-full"
+              className={`w-full${touched.imageFile && !form.imageFile ? ' p-invalid' : ''}`}
+              onBlur={() => setTouched(t => ({ ...t, imageFile: true }))}
             />
           </div>
-
           <div className="col-12">
             <div className="flex gap-2 justify-content-end">
               <Button

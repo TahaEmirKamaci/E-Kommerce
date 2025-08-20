@@ -3,7 +3,7 @@ import { Divider } from 'primereact/divider';
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-200 text-white p-4">
+    <footer style={{ background: 'var(--surface-section)', color: 'var(--text-color)', padding: '1.5rem 0', transition: 'background 0.3s, color 0.3s' }}>
       <div className="container">
         <div className="grid">
           <div className="col-12 md:col-4">

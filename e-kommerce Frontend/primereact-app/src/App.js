@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from './context/ThemeContext';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import { AuthProvider } from './context/AuthContext';
@@ -16,12 +17,13 @@ import SellerPage from './pages/SellerPage';
 import AddProductPage from './pages/AddProductPage';
 
 function App() {
+  const { theme } = useTheme();
   return (
     <PrimeReactProvider>
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
-            <div className="app">
+            <div className={`app theme-${theme}`}>
               <Navbar />
               <main>
                 <Routes>

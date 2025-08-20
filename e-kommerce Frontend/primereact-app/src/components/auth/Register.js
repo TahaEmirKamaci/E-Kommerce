@@ -29,6 +29,7 @@ export default function Register() {
     acceptTerms: false
   });
   const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState({});
 
   // Role seçenekleri - hem string hem de ID ile
   const roleOptions = [
@@ -50,8 +51,15 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validasyon
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+      acceptTerms: true
+    });
+
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       toast.current?.show({
         severity: 'error',
@@ -61,7 +69,6 @@ export default function Register() {
       });
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       toast.current?.show({
         severity: 'error',
@@ -71,7 +78,6 @@ export default function Register() {
       });
       return;
     }
-
     if (formData.password.length < 6) {
       toast.current?.show({
         severity: 'error',
@@ -81,7 +87,6 @@ export default function Register() {
       });
       return;
     }
-
     if (!formData.acceptTerms) {
       toast.current?.show({
         severity: 'error',
@@ -91,32 +96,23 @@ export default function Register() {
       });
       return;
     }
-
     setLoading(true);
-    
     try {
-      // confirmPassword ve acceptTerms'i çıkar, roleId'yi ekle
       const { confirmPassword, acceptTerms, ...registerData } = formData;
-      
-      // Role ID'sini ekle
       const dataWithRoleId = {
         ...registerData,
-        role_type: registerData.roleId // Backend'de role_type bekliyorsa
+        role_type: registerData.roleId
       };
-
       await register(dataWithRoleId);
-      
       toast.current?.show({
         severity: 'success',
         summary: 'Başarılı',
         detail: 'Hesabınız oluşturuldu',
         life: 3000
       });
-      
       setTimeout(() => {
         navigate('/');
       }, 1000);
-      
     } catch (error) {
       toast.current?.show({
         severity: 'error',
@@ -206,9 +202,9 @@ export default function Register() {
 
               <form onSubmit={handleSubmit}>
                 {/* Hesap Türü Seçimi */}
-                <div className="field mb-4">
-                  <label htmlFor="role" className="form-label">
-                    <i className="pi pi-users mr-2"></i>
+                <div className="field mb-4 ">
+                  <label htmlFor="role" className="form-label ">
+                    <i className="pi pi-users mr-2 "></i>
                     Hesap Türü *
                   </label>
                   <Dropdown
@@ -218,7 +214,8 @@ export default function Register() {
                     onChange={(e) => handleRoleChange(e.value)}
                     itemTemplate={roleItemTemplate}
                     valueTemplate={selectedRoleTemplate}
-                    className="w-full"
+                    className="w-full "
+                    style={{ background: 'black !imporatant' }}
                     placeholder="Hesap türünü seçiniz"
                   />
                   <small className="text-gray-400">
@@ -239,7 +236,8 @@ export default function Register() {
                         value={formData.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         placeholder="Adınız"
-                        className="w-full p-3"
+                        className={`w-full p-3${touched.firstName && !formData.firstName ? ' p-invalid' : ''}`}
+                        onBlur={() => setTouched(t => ({ ...t, firstName: true }))}
                         required
                       />
                     </div>
@@ -255,7 +253,8 @@ export default function Register() {
                         value={formData.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         placeholder="Soyadınız"
-                        className="w-full p-3"
+                        className={`w-full p-3${touched.lastName && !formData.lastName ? ' p-invalid' : ''}`}
+                        onBlur={() => setTouched(t => ({ ...t, lastName: true }))}
                         required
                       />
                     </div>
@@ -274,7 +273,8 @@ export default function Register() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="E-posta adresiniz"
-                    className="w-full p-3"
+                    className={`w-full p-3${touched.email && !formData.email ? ' p-invalid' : ''}`}
+                    onBlur={() => setTouched(t => ({ ...t, email: true }))}
                     required
                   />
                 </div>
@@ -293,10 +293,11 @@ export default function Register() {
                         onChange={(e) => handleInputChange('password', e.target.value)}
                         placeholder="Şifreniz"
                         className="w-full"
-                        inputClassName="w-full p-3"
+                        inputClassName={`w-full p-3${touched.password && !formData.password ? ' p-invalid' : ''}`}
                         header={passwordHeader}
                         footer={passwordFooter}
                         toggleMask
+                        onBlur={() => setTouched(t => ({ ...t, password: true }))}
                         required
                       />
                     </div>
@@ -313,9 +314,10 @@ export default function Register() {
                         onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                         placeholder="Şifrenizi tekrar giriniz"
                         className="w-full"
-                        inputClassName="w-full p-3"
+                        inputClassName={`w-full p-3${touched.confirmPassword && !formData.confirmPassword ? ' p-invalid' : ''}`}
                         feedback={false}
                         toggleMask
+                        onBlur={() => setTouched(t => ({ ...t, confirmPassword: true }))}
                         required
                       />
                     </div>
@@ -379,6 +381,8 @@ export default function Register() {
                       inputId="acceptTerms"
                       checked={formData.acceptTerms}
                       onChange={(e) => handleInputChange('acceptTerms', e.checked)}
+                      className={touched.acceptTerms && !formData.acceptTerms ? 'p-invalid' : ''}
+                      onBlur={() => setTouched(t => ({ ...t, acceptTerms: true }))}
                     />
                     <label htmlFor="acceptTerms" className="ml-2 text-sm">
                       <Link to="/terms" className="text-primary hover:underline">

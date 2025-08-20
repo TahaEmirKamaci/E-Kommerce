@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { Toast } from 'primereact/toast';
 import { Card } from 'primereact/card';
+
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -15,16 +17,42 @@ import { createOrderFromCart } from '../services/orderServices';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeFromCart, clearCart, getCartTotal } = useCart();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [showCheckout, setShowCheckout] = useState(false);
+
+  // Reset form state when dialog closes
+  const handleCloseCheckout = () => {
+    setShowCheckout(false);
+    setFormErrors({});
+    setCardInfo({ cardNumber: '', expiryDate: '', cvv: '', cardHolder: '' });
+    setShippingAddress('');
+    setPaymentMethod('CARD');
+  };
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [cardInfo, setCardInfo] = useState({ cardNumber: '', expiryDate: '', cvv: '', cardHolder: '' });
   const [shippingAddress, setShippingAddress] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const toast = useRef(null);
   
   const items = Array.isArray(cart) ? cart : [];
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // Admin ise erişimi engelle
+  React.useEffect(() => {
+    if (isAdmin) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Yetkisiz',
+        detail: 'Admin kullanıcılar sepete erişemez.',
+        life: 3000
+      });
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+  }, [isAdmin]);
 
   const imageBodyTemplate = (rowData) => (
     <img 
@@ -77,31 +105,37 @@ export default function CartPage() {
   };
 
   const processOrder = async () => {
+    setFormErrors({});
     // Legacy/mixed cart guards
     if (!Array.isArray(items) || items.length === 0) {
-      alert('Sepetiniz boş.');
+      toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Sepetiniz boş.', life: 3000 });
       return;
     }
     if (items.some(i => i.sellerId == null)) {
-      alert('Sepetteki bazı ürünlerde satıcı bilgisi eksik. Lütfen bu ürünleri kaldırıp tekrar sepete ekleyin.');
+      toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Sepetteki bazı ürünlerde satıcı bilgisi eksik. Lütfen bu ürünleri kaldırıp tekrar sepete ekleyin.', life: 4000 });
       return;
     }
     const uniqueSellers = Array.from(new Set(items.map(i => String(i.sellerId))));
     if (uniqueSellers.length > 1) {
-      alert('Sepette birden fazla satıcıya ait ürün var. Lütfen tek satıcıya ait ürünlerle sipariş verin.');
+      toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Sepette birden fazla satıcıya ait ürün var. Lütfen tek satıcıya ait ürünlerle sipariş verin.', life: 4000 });
       return;
     }
 
+    let errors = {};
     if (!shippingAddress?.trim()) {
-      alert('Lütfen teslimat adresini giriniz');
-      return;
+      errors.shippingAddress = 'Lütfen teslimat adresini giriniz';
     }
     if (paymentMethod === 'CARD') {
       const { cardNumber, expiryDate, cvv, cardHolder } = cardInfo;
-      if (!cardNumber || !expiryDate || !cvv || !cardHolder) {
-        alert('Lütfen kart bilgilerini eksiksiz giriniz');
-        return;
-      }
+      if (!cardNumber) errors.cardNumber = 'Kart numarası zorunlu';
+      if (!expiryDate) errors.expiryDate = 'Son kullanma tarihi zorunlu';
+      if (!cvv) errors.cvv = 'CVV zorunlu';
+      if (!cardHolder) errors.cardHolder = 'Kart sahibi zorunlu';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.current?.show({ severity: 'error', summary: 'Eksik Bilgi', detail: 'Lütfen eksik alanları doldurun.', life: 3000 });
+      return;
     }
     try {
       setProcessing(true);
@@ -109,19 +143,28 @@ export default function CartPage() {
       await createOrderFromCart({ items: itemsPayload, shippingAddress, paymentMethod });
       clearCart();
       setShowCheckout(false);
-      alert('Satın alınmıştır. Siparişiniz oluşturuldu.');
+      toast.current?.show({ severity: 'success', summary: 'Başarılı', detail: 'Satın alınmıştır. Siparişiniz oluşturuldu.', life: 3000 });
       navigate('/profile');
     } catch (e) {
       const msg = e?.response?.data?.error || e?.response?.data?.message || e?.message || 'Sipariş oluşturulamadı.';
-      alert(msg);
+      toast.current?.show({ severity: 'error', summary: 'Hata', detail: msg, life: 4000 });
     } finally {
       setProcessing(false);
     }
   };
 
+  if (isAdmin) {
+    return (
+      <div className="page-container">
+        <Toast ref={toast} />
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="page-container">
+        <Toast ref={toast} />
         <div className="container">
           <Card className="text-center p-6">
             <i className="pi pi-shopping-cart text-6xl text-gray-400 mb-4"></i>
@@ -136,6 +179,7 @@ export default function CartPage() {
 
   return (
     <div className="page-container">
+      <Toast ref={toast} />
       <div className="container">
         <h1 className="section-title">Sepetim</h1>
         
@@ -195,19 +239,20 @@ export default function CartPage() {
           header="Ödeme Bilgileri"
           visible={showCheckout}
           style={{ width: '600px' }}
-          onHide={() => setShowCheckout(false)}
+           onHide={handleCloseCheckout}
           footer={
             <div>
-              <Button 
-                label="İptal" 
-                className="p-button-text" 
-                onClick={() => setShowCheckout(false)} 
-              />
-              <Button 
-                label="Satın Al" 
-                onClick={processOrder}
-                loading={processing}
-              />
+               <Button 
+                 label="İptal" 
+                 className="p-button-outlined p-button-danger" 
+                 onClick={handleCloseCheckout} 
+               />
+               <Button 
+                 label="Satın Al" 
+                 className="p-button-primary"
+                 onClick={processOrder}
+                 loading={processing}
+               />
             </div>
           }
         >
@@ -219,36 +264,50 @@ export default function CartPage() {
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
                 placeholder="Teslimat adresinizi giriniz"
+                className={formErrors.shippingAddress ? 'p-invalid' : ''}
               />
+
             </div>
 
             <Divider />
 
-            <div className="field">
-              <label>Ödeme Yöntemi</label>
-              <div className="flex flex-wrap gap-3">
-                <div className="flex align-items-center">
-                  <RadioButton
-                    inputId="card"
-                    name="payment"
-                    value="CARD"
-                    onChange={(e) => setPaymentMethod(e.value)}
-                    checked={paymentMethod === 'CARD'}
-                  />
-                  <label htmlFor="card" className="ml-2">Kredi Kartı</label>
-                </div>
-                <div className="flex align-items-center">
-                  <RadioButton
-                    inputId="cash"
-                    name="payment"
-                    value="CASH"
-                    onChange={(e) => setPaymentMethod(e.value)}
-                    checked={paymentMethod === 'CASH'}
-                  />
-                  <label htmlFor="cash" className="ml-2">Nakit</label>
-                </div>
-              </div>
-            </div>
+             <div className="field">
+               <label>Ödeme Yöntemi</label>
+               <div className="flex flex-wrap gap-3">
+                 <div className="flex align-items-center">
+                   <RadioButton
+                     inputId="card"
+                     name="payment"
+                     value="CARD"
+                     onChange={(e) => setPaymentMethod(e.value)}
+                     checked={paymentMethod === 'CARD'}
+                     style={{
+                       background: paymentMethod === 'CARD' ? 'var(--primary-color)' : 'var(--surface-card)',
+                       borderColor: paymentMethod === 'CARD' ? 'var(--primary-color)' : 'var(--surface-border)',
+                     }}
+                   />
+                   <label htmlFor="card" className="ml-2" style={{
+                     color: paymentMethod === 'CARD' ? 'var(--primary-color)' : 'var(--text-color)'
+                   }}>Kredi Kartı</label>
+                 </div>
+                 <div className="flex align-items-center">
+                   <RadioButton
+                     inputId="cash"
+                     name="payment"
+                     value="CASH"
+                     onChange={(e) => setPaymentMethod(e.value)}
+                     checked={paymentMethod === 'CASH'}
+                     style={{
+                       background: paymentMethod === 'CASH' ? 'var(--primary-color)' : 'var(--surface-card)',
+                       borderColor: paymentMethod === 'CASH' ? 'var(--primary-color)' : 'var(--surface-border)',
+                     }}
+                   />
+                   <label htmlFor="cash" className="ml-2" style={{
+                     color: paymentMethod === 'CASH' ? 'var(--primary-color)' : 'var(--text-color)'
+                   }}>Nakit</label>
+                 </div>
+               </div>
+             </div>
 
             {paymentMethod === 'CARD' && (
               <div className="card-info">
@@ -260,7 +319,9 @@ export default function CartPage() {
                     value={cardInfo.cardNumber}
                     onChange={(e) => setCardInfo({...cardInfo, cardNumber: e.target.value})}
                     placeholder="1234 5678 9012 3456"
+                    className={formErrors.cardNumber ? 'p-invalid' : ''}
                   />
+
                 </div>
                 <div className="formgrid grid">
                   <div className="field col">
@@ -270,7 +331,9 @@ export default function CartPage() {
                       value={cardInfo.expiryDate}
                       onChange={(e) => setCardInfo({...cardInfo, expiryDate: e.target.value})}
                       placeholder="MM/YY"
+                      className={formErrors.expiryDate ? 'p-invalid' : ''}
                     />
+
                   </div>
                   <div className="field col">
                     <label htmlFor="cvv">CVV *</label>
@@ -279,7 +342,9 @@ export default function CartPage() {
                       value={cardInfo.cvv}
                       onChange={(e) => setCardInfo({...cardInfo, cvv: e.target.value})}
                       placeholder="123"
+                      className={formErrors.cvv ? 'p-invalid' : ''}
                     />
+
                   </div>
                 </div>
                 <div className="field">
@@ -289,7 +354,9 @@ export default function CartPage() {
                     value={cardInfo.cardHolder}
                     onChange={(e) => setCardInfo({...cardInfo, cardHolder: e.target.value})}
                     placeholder="Kart üzerindeki isim"
+                    className={formErrors.cardHolder ? 'p-invalid' : ''}
                   />
+
                 </div>
               </div>
             )}

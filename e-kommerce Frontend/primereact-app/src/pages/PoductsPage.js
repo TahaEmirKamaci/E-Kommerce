@@ -157,7 +157,7 @@ export default function ProductsPage() {
             <div className="col-12 md:col-4">
               <label className="form-label">Arama</label>
               <span className="p-input-icon-left w-full">
-                <i className="pi pi-search" />
+                <i className="pi" />
                 <InputText
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}

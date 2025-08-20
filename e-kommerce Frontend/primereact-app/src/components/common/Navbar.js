@@ -4,16 +4,21 @@ import { Button } from 'primereact/button';
 import { Badge } from 'primereact/badge';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+
 import { getRoleType } from '../../utils/helpers';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading, isAdmin } = useAuth();
   const { cart } = useCart() || {};
   
+
   const cartCount = Array.isArray(cart) ? cart.length
     : Array.isArray(cart?.items) ? cart.items.length
     : 0;
+
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -33,7 +38,7 @@ export default function Navbar() {
   const roleType = getRoleType(user);
 
   return (
-    <nav className="card bg-gray-100" style={{ padding:'0.75rem 1rem', position:'sticky', top:0, zIndex:10 }}>
+    <nav style={{ background: 'var(--surface-section)', color: 'var(--text-color)', padding:'0.75rem 1rem', position:'sticky', top:0, zIndex:10, transition: 'background 0.3s, color 0.3s' }}>
       <div className="container" style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
         <Link to="/" className="p-button p-button-text p-0" style={{ fontWeight:700, fontSize:'1.1rem' }}>
           <i className="pi pi-shopping-cart mr-2"></i>
@@ -47,16 +52,27 @@ export default function Navbar() {
         </div>
 
         <div style={{ marginLeft:'auto', display:'flex', gap:'.5rem', alignItems:'center' }}>
-          <Link to="/cart" className="p-button p-button-text">
-            <i className="pi pi-shopping-cart mr-1" /> Sepet
-            {cartCount > 0 && (
-              <Badge 
-                value={cartCount} 
-                severity="info" 
-                style={{ marginLeft: '6px' }}
-              />
-            )}
-          </Link>
+          {/* Theme toggle button */}
+          <Button
+            icon={theme === 'dark' ? 'pi pi-moon' : 'pi pi-sun'}
+            className="p-button-rounded p-button-text"
+            style={{ fontSize: '1.2rem' }}
+            onClick={toggleTheme}
+            aria-label="Tema Değiştir"
+            tooltip={theme === 'dark' ? 'Açık Moda Geç' : 'Koyu Moda Geç'}
+          />
+          {!isAdmin && (
+            <Link to="/cart" className="p-button p-button-text">
+              <i className="pi pi-shopping-cart mr-1" /> Sepet
+              {cartCount > 0 && (
+                <Badge 
+                  value={cartCount} 
+                  severity="info" 
+                  style={{ marginLeft: '6px' }}
+                />
+              )}
+            </Link>
+          )}
           
           {user ? (
             <>

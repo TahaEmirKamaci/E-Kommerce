@@ -19,11 +19,13 @@ export default function Login() {
     password: '',
     rememberMe: false
   });
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setTouched({ email: true, password: true });
 
     if (!form.email || !form.password) {
       toast.current?.show({
@@ -39,7 +41,6 @@ export default function Login() {
     setError('');
 
     try {
-      e.preventDefault();
       const result = await login({ email: form.email, password: form.password });
       const role = (result?.user?.role) || (result?.user?.roleType);
       if (String(role).toUpperCase() === 'ADMIN') {
@@ -47,18 +48,12 @@ export default function Login() {
       } else {
         navigate('/');
       }
-      
       toast.current?.show({
         severity: 'success',
         summary: 'Başarılı',
         detail: 'Giriş yapıldı',
         life: 3000
       });
-
-      setTimeout(() => {
-        // keep on the same page
-      }, 500);
-
     } catch (error) {
       const errorMsg = error?.response?.data?.error || error?.response?.data?.message || 'Giriş başarısız';
       setError(errorMsg);
@@ -88,11 +83,9 @@ export default function Login() {
   return (
     <div className="page-container">
       <Toast ref={toast} />
-
       <div className="container">
         <div className="flex justify-content-center">
           <div style={{ width: '100%', maxWidth: '500px' }}>
-
             {/* Ana Giriş Kartı */}
             <Card className="form-card">
               <div className="text-center mb-5">
@@ -102,7 +95,6 @@ export default function Login() {
                 <h1 className="text-3xl font-bold mb-2">Giriş Yap</h1>
                 <p className="text-gray-400 m-0">Hesabınıza giriş yaparak alışverişe devam edin</p>
               </div>
-
               <form onSubmit={handleSubmit}>
                 <div className="field mb-4">
                   <label htmlFor="email" className="form-label">
@@ -112,15 +104,15 @@ export default function Login() {
                   <InputText
                     id="email"
                     name="email"
-                    type="email" // email yerine text (e-posta da username da yazılabilir)
+                    type="email"
                     value={form.email}
                     onChange={(e) => setForm(s => ({ ...s, email: e.target.value }))}
                     placeholder="Kullanıcı adı veya e-posta"
-                    className="w-full p-3"
+                    className={`w-full p-3${touched.email && !form.email ? ' p-invalid' : ''}`}
+                    onBlur={() => setTouched(t => ({ ...t, email: true }))}
                     required
                   />
                 </div>
-
                 <div className="field mb-4">
                   <label htmlFor="password" className="form-label">
                     <i className="pi pi-lock mr-2"></i>
@@ -133,13 +125,13 @@ export default function Login() {
                     onChange={(e) => setForm(s => ({ ...s, password: e.target.value }))}
                     placeholder="Şifrenizi giriniz"
                     className="w-full"
-                    inputClassName="w-full p-3"
+                    inputClassName={`w-full p-3${touched.password && !form.password ? ' p-invalid' : ''}`}
                     feedback={false}
                     toggleMask
+                    onBlur={() => setTouched(t => ({ ...t, password: true }))}
                     required
                   />
                 </div>
-
                 <div className="field mb-4">
                   <div className="flex justify-content-between align-items-center">
                     <div className="flex align-items-center">
@@ -157,7 +149,6 @@ export default function Login() {
                     </Link>
                   </div>
                 </div>
-
                 <Button
                   type="submit"
                   label="Giriş Yap"
@@ -166,13 +157,10 @@ export default function Login() {
                   loading={loading}
                 />
               </form>
-
               {error && <div className="p-error" style={{ marginTop: 12 }}>{error}</div>}
-
               <Divider align="center" className="my-5">
                 <span className="text-gray-400 text-sm">veya</span>
               </Divider>
-
               <div className="text-center">
                 <p className="text-gray-400 mb-3">
                   Hesabınız yok mu?{' '}
@@ -182,8 +170,6 @@ export default function Login() {
                 </p>
               </div>
             </Card>
-
-
           </div>
         </div>
       </div>
